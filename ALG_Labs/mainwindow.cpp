@@ -13,6 +13,8 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QTime>
+#include <cmath>
+#include <typeinfo>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -27,7 +29,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     sort_selection_label_->setBuddy(sort_selection_combobox_);
     QStringList options;
     sort_selection_combobox_->addItems(options << tr("Bubble Sort")
-                                               << tr("Selection Sort"));
+                                               << tr("Selection Sort")
+                                               << tr("Shell Sort")
+                                               << tr("Merge Sort"));
     sort_selection_combobox_->setCurrentIndex(0);
 
     auto_num_label_ = new QLabel(tr("Auto array &size:"));
@@ -64,108 +68,88 @@ void MainWindow::manualDataSort()
     if(input.result() == QDialog::Accepted)
     {
         QStringList strings = input.getResult().split(" ");
-        QVector<qint32> int_vector;
+        ValueType type;
         bool conversion_result = true;
-        int temp_value;
-        for(uint i = 0; i < strings.size(); ++i)
+        QVariant data;
+        if(QString(strings.at(0)).contains('.'))
         {
-            temp_value = QString(strings.at(i)).toInt(&conversion_result);
+            data = QString(strings.at(0)).toDouble(&conversion_result);
             if(conversion_result)
-                int_vector.append(temp_value);
+            {
+                type = ValueType::FLOATING_POINT;
+            }
+        }
+        else if(!QString(strings.at(0)).contains('.'))
+        {
+            data = QString(strings.at(0)).toInt(&conversion_result);
+            if(conversion_result)
+            {
+                type = ValueType::INTEGER;
+            }
+            else
+            {
+                type = ValueType::STRING;
+            }
         }
 
-        if(int_vector.size() > 0)
-            sort(int_vector);
+        void *vector;
+        switch(type)
+        {
+        case ValueType::INTEGER:
+            vector = new QVector<int>;
+            break;
+        case ValueType::STRING:
+            vector = new QVector<QString>;
+            break;
+        case ValueType::FLOATING_POINT:
+            vector = new QVector<double>;
+            break;
+        }
+
+        QVariant temp_value;
+        for(int i = 0; i < strings.size(); ++i)
+        {
+            switch(type)
+            {
+            case ValueType::INTEGER:
+                temp_value = QString(strings.at(i)).toInt(&conversion_result);
+                if(conversion_result)
+                    ((QVector<int>*)vector)->append(temp_value.toInt());
+                break;
+
+            case ValueType::FLOATING_POINT:
+                temp_value = QString(strings.at(i)).toDouble(&conversion_result);
+                if(conversion_result)
+                    ((QVector<double>*)vector)->append(temp_value.toDouble());
+                break;
+
+            case ValueType::STRING:
+                ((QVector<QString>*)vector)->append(QString(strings.at(i)));
+                break;
+            }
+        }
+
+        switch(type)
+        {
+        case ValueType::INTEGER:
+            sort(*(QVector<int>*)vector);
+            break;
+        case ValueType::FLOATING_POINT:
+            sort(*(QVector<double>*)vector);
+            break;
+        case ValueType::STRING:
+            sort(*(QVector<QString>*)vector);
+        }
     }
 }
 
 void MainWindow::autoDataSort()
 {
-    QVector<int> int_vector(auto_num_spinbox_->value());
+    QVector<DefaultType> values(auto_num_spinbox_->value());
     srand(time(NULL));
 
-    for(int i = 0; i < int_vector.size(); ++i)
-        int_vector[i] = rand();
+    for(int i = 0; i < values.size(); ++i)
+        values[i] = DefaultType(rand());
 
-    sort(int_vector);
-}
-
-void MainWindow::sort(QVector<int> &values)
-{
-    QProgressDialog dialog(this);
-    dialog.setLabelText(tr("Sorting array..."));
-    dialog.setCancelButtonText(tr("Cancel"));
-    dialog.setMinimum(0);
-    dialog.setMaximum(values.size());
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.show();
-
-    QTime time_before = QTime::currentTime();
-
-    switch(sort_selection_combobox_->currentIndex())
-    {
-    case SortingMethods::BubbleSort:
-        bubbleSort(values, dialog);
-        break;
-    case SortingMethods::SelectionSort:
-        selectionSort(values, dialog);
-        break;
-    }
-
-    QTime time_after = QTime::currentTime();
-
-    QFile file("output.txt");
-    if(file.open(QIODevice::WriteOnly) && !dialog.wasCanceled())
-    {
-        QTextStream stream(&file);
-        for(int value : values)
-        {
-            stream << value << ENDL;
-        }
-
-        QMessageBox::information(this,
-                                 tr("Sort completed"),
-                                 tr("Time elapsed : %1 msec\n"
-                                    "Output is in output.txt file in exe dir.")
-                                    .arg(time_before.msecsTo(time_after)));
-    }
-
-    file.close();
-    dialog.hide();
-}
-
-void MainWindow::bubbleSort(QVector<int> &values, QProgressDialog &dialog)
-{
-    bool is_sorted = false;
-    dialog.setMaximum(values.size() - 1);
-    for(uint i = 0; i < values.size() - 1 && !is_sorted && !dialog.wasCanceled(); ++i)
-    {
-        is_sorted = true;
-        dialog.setValue(i);
-        QApplication::processEvents();
-        for(uint j = 0; j < values.size() - i - 1; ++j)
-        {
-            if(values.at(j) > values.at(j + 1))
-            {
-               qSwap(values[j], values[j + 1]);
-               is_sorted = false;
-            }
-        }
-    }
-    dialog.setValue(values.size() - 1);
-}
-
-void MainWindow::selectionSort(QVector<int> &values, QProgressDialog &dialog)
-{
-    for(uint i = 0; i < values.size() - 1; ++i)
-    {
-        dialog.setValue(i);
-        uint max_value_index = 0;
-        for(uint j = 1; j < values.size() - i; ++j)
-        {
-            if(values[max_value_index] < values[j])
-                max_value_index = j;
-        }
-        qSwap(values[max_value_index], values[values.size() - i - 1]);
-    }
+    sort(values);
 }

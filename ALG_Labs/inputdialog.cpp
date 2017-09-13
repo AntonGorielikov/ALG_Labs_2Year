@@ -11,8 +11,12 @@ InputDialog::InputDialog(QWidget *parent)
     label_ = new QLabel(tr("&Numbers:"));
 
     edit_ = new QLineEdit;
-    edit_->setWhatsThis(tr("Enter integer values separated by spaces.\n"
-                           "Invalid values will be ignored"));
+    edit_->setWhatsThis(tr("Enter values separated by spaces.\n"
+                           "First value determines type.\n"
+                           "Supported value types:\n"
+                           "Integer\n"
+                           "Floating point\n"
+                           "String"));
     label_->setBuddy(edit_);
 
     ok_ = new QPushButton(tr("&OK"));
