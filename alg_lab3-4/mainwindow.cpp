@@ -146,17 +146,13 @@ void MainWindow::mergeSort(QVector<double> &array)
         mergeSort(right_vector);
 
         *stream_ << tr("Merging vectors with size=") << left_vector.size() << tr(" and size=") << right_vector.size() << ENDL;
-        QVector<double> merged_vector(array.size());
-        for(int i = 0, left_index = 0, right_index = 0; i < merged_vector.size(); ++i)
+        for(int i = 0, left_index = 0, right_index = 0; i < array.size(); ++i)
         {
-            merged_vector[i] = (left_index < left_vector.size()
+            array[i] = (left_index < left_vector.size()
                                 && (right_index >= right_vector.size()
                                     || left_vector.at(left_index) < right_vector.at(right_index))
                                 ? left_vector.at(left_index++) : right_vector.at(right_index++));
         }
-
-        *stream_ << tr("Copying merged vector to source one") << ENDL;
-        array = merged_vector;
     }
 }
 
