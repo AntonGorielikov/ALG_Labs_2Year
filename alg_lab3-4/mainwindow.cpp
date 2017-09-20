@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include "vectormodel.h"
+#include "algorithms.h"
 
 #include <QPushButton>
 #include <QListView>
@@ -80,11 +81,11 @@ void MainWindow::sort()
     {
     case SHELL_SORT:
         *stream_ << tr("Starting Shell Sort") << ENDL;
-        shellSort();
+        Algorithms<double>::shellSort(array_, stream_);
         break;
     case MERGE_SORT:
         *stream_ << tr("Starting Merge Sort") << ENDL;
-        mergeSort(array_);
+        Algorithms<double>::mergeSort(array_, stream_);
         break;
     }
     QTime time_after = QTime::currentTime();
@@ -106,53 +107,6 @@ void MainWindow::uselessAction()
     case MERGE_SORT:
         uselessActionLab4();
         break;
-    }
-}
-
-void MainWindow::shellSort()
-{
-    for(int step = array_.size() / 2; step > 0; step /= 2)
-    {
-        *stream_ << tr("Step = ") << step << ENDL;
-        for(int i = step; i < array_.size(); ++i)
-        {
-            *stream_ << tr("Holding element array[") << i << tr("] = ") << array_.at(i) << ENDL;
-            double temp = array_.at(i);
-            int j;
-            for(j = i; j >= step && array_.at(j - step) > temp; j -= step)
-            {
-                *stream_ << tr("Shifting elements array[") << j << tr("] and array[")<< j - step << tr("]") << ENDL;
-                array_[j] = array_[j - step];
-            }
-
-            *stream_ << tr("Placing array[") << i << ("] element on its place at array[") << j << tr("]") << ENDL;
-            array_[j] = temp;
-        }
-    }
-    *stream_ << tr("Array sorted") << ENDL;
-}
-
-void MainWindow::mergeSort(QVector<double> &array)
-{
-    if(array.size() > 1)
-    {
-        *stream_ << tr("Dividing array with size=") << array.size() << tr(" to vectors with size=")
-                 << array.size() / 2 << tr(" and size=") << array.size() / 2 + array.size() % 2 << ENDL;;
-
-        QVector<double> left_vector = array.mid(0, array.size() / 2);
-        mergeSort(left_vector);
-        QVector<double> right_vector = array.mid(array.size() / 2,
-                                                 array.size() / 2 + array.size() % 2);
-        mergeSort(right_vector);
-
-        *stream_ << tr("Merging vectors with size=") << left_vector.size() << tr(" and size=") << right_vector.size() << ENDL;
-        for(int i = 0, left_index = 0, right_index = 0; i < array.size(); ++i)
-        {
-            array[i] = (left_index < left_vector.size()
-                                && (right_index >= right_vector.size()
-                                    || left_vector.at(left_index) < right_vector.at(right_index))
-                                ? left_vector.at(left_index++) : right_vector.at(right_index++));
-        }
     }
 }
 

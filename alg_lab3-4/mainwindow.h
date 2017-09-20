@@ -3,12 +3,6 @@
 
 #include <QMainWindow>
 
-#ifdef WIN32
-#define ENDL "\r\n"
-#else
-#define ENDL "\n"
-#endif
-
 class QPushButton;
 class QListView;
 class QComboBox;
@@ -39,8 +33,6 @@ private:
     };
     const QString OUTPUT_FILE = "output.txt";
 
-    void shellSort();
-    void mergeSort(QVector<double> &array);
     void uselessActionLab3();
     void uselessActionLab4();
 
