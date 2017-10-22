@@ -26,17 +26,17 @@ private slots:
 private:
     enum
     {
-        ARRAY_SIZE = 15,
+        ARRAY_SIZE = 100,
 
-        SHELL_SORT = 0,
-        MERGE_SORT
+        COUNTING_SORT = 0
     };
     const QString OUTPUT_FILE = "output.txt";
 
     void uselessActionLab3();
     void uselessActionLab4();
+    void uselessActionLab5();
 
-    QVector<double> array_;
+    QVector<int> array_;
     VectorModel *model_;
     QComboBox *choose_method_;
     QListView *array_interf_;

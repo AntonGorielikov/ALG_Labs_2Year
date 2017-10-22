@@ -13,6 +13,9 @@
 #include <QtMath>
 #include <QTime>
 
+static const int upper_limit = 99;
+static const int lower_limit = 0;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), output_file_(OUTPUT_FILE)
 {
@@ -33,8 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     choose_method_ = new QComboBox;
     QStringList methods;
-    choose_method_->addItems(methods << tr("Shell Sort")
-                                     << tr("Merge Sort"));
+    choose_method_->addItems(methods << tr("Counting Sort"));
     choose_method_->setCurrentIndex(0);
 
     QVBoxLayout *vert_layout = new QVBoxLayout;
@@ -69,23 +71,22 @@ void MainWindow::reset()
 {
     array_.clear();
     for(int i = 0; i < ARRAY_SIZE; ++i)
-    {
-        array_.append(100.0 - (rand() % 200 + 0.01 * (rand() % 100)));
-    }
+        array_.append(rand()%100);
 }
 
 void MainWindow::sort()
 {
+    *stream_ << "Before sort:" << ENDL;
+    for(int i = 0; i < array_.size(); ++i)
+    {
+        *stream_ << tr("array[") << i << tr("] = ") << array_.at(i) << ENDL;
+    }
     QTime time_before = QTime::currentTime();
     switch(choose_method_->currentIndex())
     {
-    case SHELL_SORT:
+    case COUNTING_SORT:
         *stream_ << tr("Starting Shell Sort") << ENDL;
-        Algorithms<double>::shellSort(array_, stream_);
-        break;
-    case MERGE_SORT:
-        *stream_ << tr("Starting Merge Sort") << ENDL;
-        Algorithms<double>::mergeSort(array_, stream_);
+        Algorithms<int>::countingSort(array_, upper_limit, lower_limit, stream_);
         break;
     }
     QTime time_after = QTime::currentTime();
@@ -95,19 +96,18 @@ void MainWindow::sort()
     {
         *stream_ << tr("array[") << i << tr("] = ") << array_.at(i) << ENDL;
     }
+    array_interf_->update();
 }
 
 void MainWindow::uselessAction()
 {
     switch(choose_method_->currentIndex())
     {
-    case SHELL_SORT:
-        uselessActionLab3();
-        break;
-    case MERGE_SORT:
-        uselessActionLab4();
+    case COUNTING_SORT:
+        uselessActionLab5();
         break;
     }
+    array_interf_->update();
 }
 
 void MainWindow::uselessActionLab3()
@@ -143,4 +143,8 @@ void MainWindow::uselessActionLab4()
     for(int i = 0; i < array_.size(); ++i)
         if(array_.at(i) < 0)
             array_[i] = qSin(array_.at(i));
+}
+
+void MainWindow::uselessActionLab5()
+{
 }

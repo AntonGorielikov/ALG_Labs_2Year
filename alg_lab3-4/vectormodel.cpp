@@ -4,7 +4,7 @@ VectorModel::VectorModel(QObject *parent)
     : QAbstractListModel(parent)
 {}
 
-void VectorModel::setVector(const QVector<double> &vector)
+void VectorModel::setVector(const QVector<int> &vector)
 {
     vector_ = &vector;
 }

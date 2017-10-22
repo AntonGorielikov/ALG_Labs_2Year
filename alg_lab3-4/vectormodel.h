@@ -8,7 +8,7 @@ class VectorModel : public QAbstractListModel
 public:
     VectorModel(QObject *parent = nullptr);
 
-    void setVector(const QVector<double> &vector);
+    void setVector(const QVector<int> &vector);
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section,
@@ -18,7 +18,7 @@ public:
 private:
     QString valueAt(int offset) const;
 
-    const QVector<double> *vector_;
+    const QVector<int> *vector_;
 };
 
 #endif // VECTORMODEL_H
