@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "inputdialog.h"
 
 #include <QFile>
 #include <QPushButton>
@@ -16,39 +15,25 @@
 #include <cmath>
 #include <typeinfo>
 
+#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     manual_data_sort_ = new QPushButton();
-    manual_data_sort_->setText(tr("&Manual"));
+    manual_data_sort_->setText(tr("&Test"));
 
-    auto_data_sort_ = new QPushButton();
-    auto_data_sort_->setText(tr("&Auto"));
-
-    sort_selection_label_ = new QLabel(tr("&Methods:"));
-    sort_selection_combobox_ = new QComboBox();
-    sort_selection_label_->setBuddy(sort_selection_combobox_);
-    QStringList options;
-    sort_selection_combobox_->addItems(options << tr("Bubble Sort")
-                                               << tr("Selection Sort")
-                                               << tr("Shell Sort")
-                                               << tr("Merge Sort"));
-    sort_selection_combobox_->setCurrentIndex(0);
-
-    auto_num_label_ = new QLabel(tr("Auto array &size:"));
+    auto_num_label_ = new QLabel(tr("Array &size:"));
     auto_num_spinbox_ = new QSpinBox();
     auto_num_label_->setBuddy(auto_num_spinbox_);
 
     auto_num_spinbox_->setMinimum(0);
-    auto_num_spinbox_->setMaximum(1000000);
-    auto_num_spinbox_->setValue(AUTO_SORT_SIZE);
+    auto_num_spinbox_->setMaximum(10000000);
+    auto_num_spinbox_->setValue(10000);
 
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(auto_num_label_, 0, 0, 1, 1);
     layout->addWidget(auto_num_spinbox_, 0, 1, 1, 2);
-    layout->addWidget(sort_selection_label_, 1, 0, 1, 1);
-    layout->addWidget(sort_selection_combobox_, 1, 1, 1, 1);
-    layout->addWidget(manual_data_sort_, 2, 0, 1, 1);
-    layout->addWidget(auto_data_sort_, 2, 1, 1, 1);
+    layout->addWidget(manual_data_sort_, 2, 0, 1, 2);
 
     QWidget *main_widget = new QWidget();
     main_widget->setLayout(layout);
@@ -57,99 +42,152 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setFixedSize(minimumSizeHint());
 
     connect(manual_data_sort_, &QPushButton::clicked, this, &MainWindow::manualDataSort);
-    connect(auto_data_sort_, &QPushButton::clicked, this, &MainWindow::autoDataSort);
 }
 
 void MainWindow::manualDataSort()
 {
-    InputDialog input;
-    input.exec();
-
-    if(input.result() == QDialog::Accepted)
-    {
-        QStringList strings = input.getResult().split(" ");
-        ValueType type;
-        bool conversion_result = true;
-        QVariant data;
-        if(QString(strings.at(0)).contains('.'))
-        {
-            data = QString(strings.at(0)).toDouble(&conversion_result);
-            if(conversion_result)
-            {
-                type = ValueType::FLOATING_POINT;
-            }
-        }
-        else if(!QString(strings.at(0)).contains('.'))
-        {
-            data = QString(strings.at(0)).toInt(&conversion_result);
-            if(conversion_result)
-            {
-                type = ValueType::INTEGER;
-            }
-            else
-            {
-                type = ValueType::STRING;
-            }
-        }
-
-        void *vector;
-        switch(type)
-        {
-        case ValueType::INTEGER:
-            vector = new QVector<int>;
-            break;
-        case ValueType::STRING:
-            vector = new QVector<QString>;
-            break;
-        case ValueType::FLOATING_POINT:
-            vector = new QVector<double>;
-            break;
-        }
-
-        QVariant temp_value;
-        for(int i = 0; i < strings.size(); ++i)
-        {
-            switch(type)
-            {
-            case ValueType::INTEGER:
-                temp_value = QString(strings.at(i)).toInt(&conversion_result);
-                if(conversion_result)
-                    ((QVector<int>*)vector)->append(temp_value.toInt());
-                break;
-
-            case ValueType::FLOATING_POINT:
-                temp_value = QString(strings.at(i)).toDouble(&conversion_result);
-                if(conversion_result)
-                    ((QVector<double>*)vector)->append(temp_value.toDouble());
-                break;
-
-            case ValueType::STRING:
-                ((QVector<QString>*)vector)->append(QString(strings.at(i)));
-                break;
-            }
-        }
-
-        switch(type)
-        {
-        case ValueType::INTEGER:
-            sort(*(QVector<int>*)vector);
-            break;
-        case ValueType::FLOATING_POINT:
-            sort(*(QVector<double>*)vector);
-            break;
-        case ValueType::STRING:
-            sort(*(QVector<QString>*)vector);
-        }
-    }
+    autoDataSort();
 }
 
 void MainWindow::autoDataSort()
 {
-    QVector<DefaultType> values(auto_num_spinbox_->value());
+    QVector<int> values(auto_num_spinbox_->value());
     srand(time(NULL));
 
     for(int i = 0; i < values.size(); ++i)
-        values[i] = DefaultType(rand());
+        values[i] = rand() % 100;
 
     sort(values);
+}
+
+void MainWindow::sort(QVector<int> &values)
+{
+    QFile file("output.txt");
+    if (!file.open(QIODevice::WriteOnly))
+        return;
+
+    QTextStream stream(&file);
+    QProgressDialog dialog(this);
+    dialog.setLabelText(tr("Sorting array..."));
+    dialog.setCancelButtonText(tr("Cancel"));
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.show();
+
+    stream << "Running tests with array size = " << values.size() << ENDL;
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+    dialog.setLabelText(tr("Sorting array... (bubble)"));
+    QTime time_before = QTime::currentTime();
+    bubbleSort(values, dialog);
+    QTime time_after = QTime::currentTime();
+    stream << "Bubble sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+    dialog.setLabelText(tr("Sorting array... (selection)"));
+    time_before = QTime::currentTime();
+    selectionSort(values, dialog);
+    time_after = QTime::currentTime();
+    stream << "Selection sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+
+    dialog.setLabelText(tr("Sorting array... (shell)"));
+    time_before = QTime::currentTime();
+    shellSort(values, dialog);
+    time_after = QTime::currentTime();
+    stream << "Shell sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+
+    dialog.setLabelText(tr("Sorting array... (merge)"));
+    time_before = QTime::currentTime();
+    mergeSort(values, dialog);
+    time_after = QTime::currentTime();
+    stream << "Merge sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+
+    dialog.setLabelText(tr("Sorting array... (quick)"));
+    time_before = QTime::currentTime();
+    quick_Sort(values, 0, values.size() - 1, dialog);
+    time_after = QTime::currentTime();
+    stream << "Quick sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+
+    dialog.setLabelText(tr("Sorting array... (counting)"));
+    time_before = QTime::currentTime();
+    counting_Sort(values, 0, 99, dialog);
+    time_after = QTime::currentTime();
+    stream << "Counting sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
+
+    if (dialog.wasCanceled())
+    {
+        stream << "Test was canceled, results may be invalid" << ENDL;
+        return;
+    }
+
+    dialog.hide();
+    QMessageBox::information(this,tr("Sort tests completed"),
+                                  tr("Output is in output.txt file in exe dir."));
+}
+
+
+void MainWindow::counting_Sort(QVector<int> values, int lower_limit, int upper_limit, QProgressDialog &dialog)
+{
+    if(upper_limit < lower_limit)
+            return;
+
+    QVector<int> key_occurances;
+    key_occurances.resize(upper_limit - lower_limit + 1);
+
+    for(int i = 0; i < key_occurances.size(); ++i)
+        key_occurances[i] = 0;
+
+    for(int i = 0; i < values.size(); ++i)
+    {
+        if (dialog.wasCanceled())
+            return;
+        QApplication::processEvents();
+        key_occurances[values.at(i) - lower_limit] += 1;
+    }
+
+    values.clear();
+    for(int i = 0; i < key_occurances.size(); ++i)
+        for(int j = 0; j < key_occurances.at(i); ++j)
+        {
+            if (dialog.wasCanceled())
+                return;
+            QApplication::processEvents();
+            values.append(i + lower_limit);
+        }
 }

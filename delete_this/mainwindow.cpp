@@ -30,14 +30,7 @@ MainWindow::~MainWindow()
 #include <QDebug>
 void MainWindow::on_pushButton_clicked()
 {
-    //quickSort(arr_, 0, arr_.size() - 1);
-    QVector<QVector<double> > array;
-    for(int i = 0; i < 5; ++i)
-    {
-        array.append(QVector<double>());
-        array[i].append(i);
-    }
-    quickSort(array, 0, 4);
+    quickSort(arr_, 0, arr_.size() - 1);
     dumpArray();
 }
 
@@ -50,6 +43,7 @@ void MainWindow::on_pushButton_2_clicked()
     dumpArray();
 }
 
+#include <qDebug>
 void MainWindow::dumpArray()
 {
     for(int i = 0; i < arr_.size(); ++i)
@@ -57,23 +51,31 @@ void MainWindow::dumpArray()
             table_->setItem(j, i, new QTableWidgetItem(QString::number(arr_[i][j])));
 }
 
-#include <qDebug>
 void MainWindow::quickSort(QVector<QVector<double> > &arr,
                            int leftmost,
                            int rightmost)
 {
+    qDebug() << "Quick sort from leftmost=" << leftmost << " to rightmost=" << rightmost;
+    qDebug() << "Elements is:";
+    for(int s = leftmost; s < rightmost + 1; ++s)
+        qDebug() << arr[s][0];
     int i = leftmost, j = rightmost;
     double pivot = arr[(leftmost + rightmost) / 2][0];
+    qDebug() << "Pivot element is arr[" << (leftmost + rightmost) / 2 << "]=" << pivot;
 
+    qDebug() << "Starting partition";
     while (i <= j) {
         for(;arr[i][0] < pivot; ++i);
         for(;arr[j][0] > pivot; --j);
+        qDebug() << "Found i=" << i << "=" << arr[i][0] << " and j=" << j << "=" << arr[j][0];
         if (i <= j) {
+            qDebug() << "Swapping them";
             qSwap(arr[j], arr[i]);
             ++i;
             --j;
         }
     };
+    qDebug() << "Ending partition";
 
     if (leftmost < j)
         quickSort(arr, leftmost, j);
