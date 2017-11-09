@@ -60,6 +60,12 @@ void MainWindow::autoDataSort()
     sort(values);
 }
 
+void MainWindow::dump_array(QVector<int> &values, QTextStream &stream)
+{
+    for(int i = 0; i < values.size(); ++i)
+        stream << "array["<<i<<"]="<<values.at(i)<<ENDL;
+}
+
 void MainWindow::sort(QVector<int> &values)
 {
     QFile file("output.txt");
@@ -80,12 +86,12 @@ void MainWindow::sort(QVector<int> &values)
         return;
     }
 
-    dialog.setLabelText(tr("Sorting array... (bubble)"));
-    QTime time_before = QTime::currentTime();
-    bubbleSort(values, dialog);
-    QTime time_after = QTime::currentTime();
+    QTime time_before, time_after;
+    /*dialog.setLabelText(tr("Sorting array... (bubble)"));
+    time_before = QTime::currentTime();
+    bubbleSort(values, dialog, stream);
+    time_after = QTime::currentTime();
     stream << "Bubble sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
-
     if (dialog.wasCanceled())
     {
         stream << "Test was canceled, results may be invalid" << ENDL;
@@ -94,7 +100,7 @@ void MainWindow::sort(QVector<int> &values)
 
     dialog.setLabelText(tr("Sorting array... (selection)"));
     time_before = QTime::currentTime();
-    selectionSort(values, dialog);
+    selectionSort(values, dialog, stream);
     time_after = QTime::currentTime();
     stream << "Selection sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
 
@@ -102,12 +108,11 @@ void MainWindow::sort(QVector<int> &values)
     {
         stream << "Test was canceled, results may be invalid" << ENDL;
         return;
-    }
-
+    }*/
 
     dialog.setLabelText(tr("Sorting array... (shell)"));
     time_before = QTime::currentTime();
-    shellSort(values, dialog);
+    shellSort(values, dialog, stream);
     time_after = QTime::currentTime();
     stream << "Shell sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
 
@@ -120,7 +125,9 @@ void MainWindow::sort(QVector<int> &values)
 
     dialog.setLabelText(tr("Sorting array... (merge)"));
     time_before = QTime::currentTime();
-    mergeSort(values, dialog);
+    QVector<int> values_cpy = values;
+    mergeSort(values_cpy, dialog, stream);
+    dump_array(values_cpy, stream);
     time_after = QTime::currentTime();
     stream << "Merge sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
 
@@ -133,7 +140,9 @@ void MainWindow::sort(QVector<int> &values)
 
     dialog.setLabelText(tr("Sorting array... (quick)"));
     time_before = QTime::currentTime();
-    quick_Sort(values, 0, values.size() - 1, dialog);
+    values_cpy = values;
+    quick_Sort(values, 0, values.size() - 1, dialog, stream);
+    dump_array(values_cpy, stream);
     time_after = QTime::currentTime();
     stream << "Quick sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
 
@@ -146,7 +155,7 @@ void MainWindow::sort(QVector<int> &values)
 
     dialog.setLabelText(tr("Sorting array... (counting)"));
     time_before = QTime::currentTime();
-    counting_Sort(values, 0, 99, dialog);
+    counting_Sort(values, 0, 99, dialog, stream);
     time_after = QTime::currentTime();
     stream << "Counting sort: " << time_before.msecsTo(time_after) << " msec" << ENDL;
 
@@ -162,7 +171,7 @@ void MainWindow::sort(QVector<int> &values)
 }
 
 
-void MainWindow::counting_Sort(QVector<int> values, int lower_limit, int upper_limit, QProgressDialog &dialog)
+void MainWindow::counting_Sort(QVector<int> values, int lower_limit, int upper_limit, QProgressDialog &dialog, QTextStream &s)
 {
     if(upper_limit < lower_limit)
             return;
@@ -190,4 +199,6 @@ void MainWindow::counting_Sort(QVector<int> values, int lower_limit, int upper_l
             QApplication::processEvents();
             values.append(i + lower_limit);
         }
+
+    dump_array(values, s);
 }

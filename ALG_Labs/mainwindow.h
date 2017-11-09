@@ -52,23 +52,25 @@ private:
     QLabel *auto_num_label_;
     QSpinBox *auto_num_spinbox_;
 
+    void dump_array(QVector<int> &values, QTextStream &stream);
+
     void sort(QVector<int> &values);
     template<typename T>
-    void bubbleSort(QVector<T> values, QProgressDialog &dialog);
+    void bubbleSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s);
     template<typename T>
-    void selectionSort(QVector<T> values, QProgressDialog &dialog);
+    void selectionSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s);
     template<typename T>
-    void shellSort(QVector<T> values, QProgressDialog &dialog);
+    void shellSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s);
     template<typename T>
-    void mergeSort(QVector<T> values, QProgressDialog &dialog);
+    void mergeSort(QVector<T> &values, QProgressDialog &dialog, QTextStream &s);
     template<typename T>
-    void quick_Sort(QVector<T> values, int leftmost, int rightmost, QProgressDialog &dialog);
+    void quick_Sort(QVector<T> &values, int leftmost, int rightmost, QProgressDialog &dialog, QTextStream &s);
 
-    void counting_Sort(QVector<int> values, int lower_limit, int upper_limit, QProgressDialog &dialog);
+    void counting_Sort(QVector<int> values, int lower_limit, int upper_limit, QProgressDialog &dialog, QTextStream &s);
 };
 
 template<typename T>
-void MainWindow::bubbleSort(QVector<T> values, QProgressDialog &dialog)
+void MainWindow::bubbleSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s)
 {
     bool is_sorted = false;
     for(int i = 0; i < values.size() - 1 && !is_sorted && !dialog.wasCanceled(); ++i)
@@ -84,10 +86,11 @@ void MainWindow::bubbleSort(QVector<T> values, QProgressDialog &dialog)
             }
         }
     }
+    dump_array(values, s);
 }
 
 template<typename T>
-void MainWindow::selectionSort(QVector<T> values, QProgressDialog &dialog)
+void MainWindow::selectionSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s)
 {
     for(int i = 0; i < values.size() - 1 && !dialog.wasCanceled(); ++i)
     {
@@ -100,10 +103,11 @@ void MainWindow::selectionSort(QVector<T> values, QProgressDialog &dialog)
         }
         qSwap(values[max_value_index], values[values.size() - i - 1]);
     }
+    dump_array(values, s);
 }
 
 template<typename T>
-void MainWindow::shellSort(QVector<T> values, QProgressDialog &dialog)
+void MainWindow::shellSort(QVector<T> values, QProgressDialog &dialog, QTextStream &s)
 {
     int steps = 0;
     for(int step = values.size() / 2; step > 0; step /= 2)
@@ -121,10 +125,13 @@ void MainWindow::shellSort(QVector<T> values, QProgressDialog &dialog)
 
             values[j] = temp;
         }
+
+
+    dump_array(values, s);
 }
 
 template<typename T>
-void MainWindow::mergeSort(QVector<T> values, QProgressDialog &dialog)
+void MainWindow::mergeSort(QVector<T> &values, QProgressDialog &dialog, QTextStream &s)
 {
     dialog.setMaximum(0);
     if(values.size() > 1)
@@ -132,8 +139,8 @@ void MainWindow::mergeSort(QVector<T> values, QProgressDialog &dialog)
         QVector<T> left_vector = values.mid(0, values.size()/2);
         QVector<T> right_vector = values.mid(values.size()/2, values.size()/2 + values.size() % 2);
 
-        mergeSort(left_vector, dialog);
-        mergeSort(right_vector, dialog);
+        mergeSort(left_vector, dialog,s);
+        mergeSort(right_vector, dialog,s);
 
         QApplication::processEvents();
         for(int i = 0, left_index = 0, right_index = 0; i < values.size(); ++i)
@@ -151,7 +158,7 @@ void MainWindow::mergeSort(QVector<T> values, QProgressDialog &dialog)
 }
 
 template<typename T>
-void MainWindow::quick_Sort(QVector<T> values, int leftmost, int rightmost, QProgressDialog &dialog)
+void MainWindow::quick_Sort(QVector<T> &values, int leftmost, int rightmost, QProgressDialog &dialog, QTextStream &s)
 {
     int i = leftmost, j = rightmost;
     double pivot = values.at((leftmost + rightmost) / 2);
@@ -170,9 +177,9 @@ void MainWindow::quick_Sort(QVector<T> values, int leftmost, int rightmost, QPro
     }
     
     if (leftmost < j)
-        quick_Sort(values, leftmost, j, dialog);
+        quick_Sort(values, leftmost, j, dialog,s);
     if (rightmost > i)
-        quick_Sort(values, i, rightmost, dialog);
+        quick_Sort(values, i, rightmost, dialog,s);
 }
 
 #endif // MAINWINDOW_H
